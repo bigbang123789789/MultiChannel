@@ -18,11 +18,6 @@ for cv in cvs:
     avglen = 0
     count100 = 0
 
-
-    # ======================
-    # INPUT FILE
-    # ======================
-
     train_pos_file = f"data/VSFC/Data_not_token/Fold_{cv}/train_pos.txt"
     train_neg_file = f"data/VSFC/Data_not_token/Fold_{cv}/train_neg.txt"
     train_neu_file = f"data/VSFC/Data_not_token/Fold_{cv}/train_neu.txt"
@@ -40,11 +35,6 @@ for cv in cvs:
         test_neu_file
     ]
 
-
-    # ======================
-    # OUTPUT FILE
-    # ======================
-
     save_files = [
         f"data/VSFC/Data_not_token/Fold_{cv}/train_pos.npy",
         f"data/VSFC/Data_not_token/Fold_{cv}/train_neg.npy",
@@ -53,12 +43,6 @@ for cv in cvs:
         f"data/VSFC/Data_not_token/Fold_{cv}/test_neg.npy",
         f"data/VSFC/Data_not_token/Fold_{cv}/test_neu.npy"
     ]
-
-
-
-    # ======================
-    # PROCESS DATA
-    # ======================
 
     for open_file, save_file in zip(open_files, save_files):
 
@@ -107,45 +91,29 @@ for cv in cvs:
 
                 if len(ids) > 0:
 
-
-                    # ======================
-                    # PADDING
-                    # ======================
-
                     if len(ids) < MAX_LEN:
 
                         ids = ids + [0] * (MAX_LEN - len(ids))
-
 
                     else:
 
                         ids = ids[:MAX_LEN]
 
-
-
                     data.append(ids)
-
-
 
         data = np.array(
             data,
             dtype=np.int32
         )
-
-
         print(
             save_file,
             data.shape
         )
-
-
         np.save(
             save_file,
             data
         )
 
-
-        # statistic
 
         for li in data:
 
@@ -154,14 +122,10 @@ for cv in cvs:
             if maxlen < length:
                 maxlen = length
 
-
             avglen += length
-
 
             if length > 250:
                 count100 += 1
-
-
 
     print("====================")
     print("Fold:",cv)

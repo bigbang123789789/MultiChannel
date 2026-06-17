@@ -26,11 +26,6 @@ from load_data import load_data_shuffle
 
 np.random.seed(1337)
 
-
-# =========================
-# PARAMETERS
-# =========================
-
 max_features = 21540
 
 maxlen = 400
@@ -50,23 +45,12 @@ epochs = 14
 if not os.path.exists("CNN-LSTM-weights"):
     os.makedirs("CNN-LSTM-weights")
 
-
-
-# =========================
-# MAX POOL
-# =========================
-
 def max_1d(x):
     return tf.reduce_max(
         x,
         axis=1
     )
 
-
-
-# =========================
-# TRAIN 5 FOLD
-# =========================
 
 cvs = [1]
 
@@ -117,24 +101,11 @@ for cv in cvs:
     print("Build model...")
 
 
-
-    # =========================
-    # INPUT
-    # =========================
-
-
     input_layer = Input(
         shape=(maxlen,),
         dtype="int32",
         name="main_input"
     )
-
-
-
-    # =========================
-    # CNN CHANNEL
-    # =========================
-
 
     cnn_embedding = Embedding(
         input_dim=max_features,
@@ -159,9 +130,6 @@ for cv in cvs:
         max_1d,
         output_shape=(nb_filter,)
     )(conv3)
-
-
-
 
 
     # filter 4
@@ -213,12 +181,6 @@ for cv in cvs:
     )
 
 
-
-    # =========================
-    # LSTM CHANNEL
-    # =========================
-
-
     lstm_embedding = Embedding(
         input_dim=max_features,
         output_dim=embedding_dims
@@ -229,12 +191,6 @@ for cv in cvs:
     lstm_output = LSTM(
         128
     )(lstm_embedding)
-
-
-
-    # =========================
-    # CNN + LSTM
-    # =========================
 
 
     merged = Concatenate()(
@@ -295,13 +251,6 @@ for cv in cvs:
         verbose=1
     )
 
-
-
-    # =========================
-    # TRAIN
-    # =========================
-
-
     model.fit(
         X_train,
         y_train,
@@ -310,12 +259,6 @@ for cv in cvs:
         validation_data=(X_val,y_val),
         callbacks=[checkpoint]
     )
-
-
-
-    # =========================
-    # TEST
-    # =========================
 
 
     model.load_weights(

@@ -11,11 +11,6 @@ def load_data_shuffle(cv):
         + "/"
     )
 
-
-    # ==================
-    # LOAD
-    # ==================
-
     pos_train = np.load(base+"train_pos.npy")
     neg_train = np.load(base+"train_neg.npy")
     neu_train = np.load(base+"train_neu.npy")
@@ -24,12 +19,6 @@ def load_data_shuffle(cv):
     pos_test = np.load(base+"test_pos.npy")
     neg_test = np.load(base+"test_neg.npy")
     neu_test = np.load(base+"test_neu.npy")
-
-
-
-    # ==================
-    # LABEL
-    # ==================
 
     y_pos_train = np.tile(
         [1,0,0],
@@ -68,11 +57,6 @@ def load_data_shuffle(cv):
     )
 
 
-
-    # ==================
-    # MERGE TRAIN
-    # ==================
-
     X = np.concatenate(
         [
             pos_train,
@@ -92,18 +76,11 @@ def load_data_shuffle(cv):
 
 
     # shuffle toàn bộ
-
     X, y = shuffle(
         X,
         y,
         random_state=42
     )
-
-
-
-    # ==================
-    # VALIDATION SPLIT
-    # ==================
 
     split = int(
         0.9 * len(X)
@@ -118,12 +95,6 @@ def load_data_shuffle(cv):
     X_val = X[split:]
 
     y_val = y[split:]
-
-
-
-    # ==================
-    # TEST
-    # ==================
 
     X_test = np.concatenate(
         [
@@ -148,8 +119,6 @@ def load_data_shuffle(cv):
         y_test,
         random_state=42
     )
-
-
 
     return (
         X_train,

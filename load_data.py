@@ -1,17 +1,16 @@
 import numpy as np
 import os
 import pickle
-import cPickle
 
 def load_data_shuffle(cv):
 
-    train_pos_save = "data/VS/Data_not_token/Fold_"+ str(cv)+"/train_pos.npy"
-    train_neg_save = "data/VS/Data_not_token/Fold_"+ str(cv)+"/train_neg.npy"
-    train_neu_save = "data/VS/Data_not_token/Fold_"+ str(cv)+"/train_neu.npy"
+    train_pos_save = "data/VSFC/Data_not_token/Fold_"+ str(cv)+"/train_pos.npy"
+    train_neg_save = "data/VSFC/Data_not_token/Fold_"+ str(cv)+"/train_neg.npy"
+    train_neu_save = "data/VSFC/Data_not_token/Fold_"+ str(cv)+"/train_neu.npy"
 
-    test_pos_save = "data/VS/Data_not_token/Fold_"+ str(cv)+"/test_pos.npy"
-    test_neg_save = "data/VS/Data_not_token/Fold_"+ str(cv)+"/test_neg.npy"
-    test_neu_save = "data/VS/Data_not_token/Fold_"+ str(cv)+"/test_neu.npy"
+    test_pos_save = "data/VSFC/Data_not_token/Fold_"+ str(cv)+"/test_pos.npy"
+    test_neg_save = "data/VSFC/Data_not_token/Fold_"+ str(cv)+"/test_neg.npy"
+    test_neu_save = "data/VSFC/Data_not_token/Fold_"+ str(cv)+"/test_neu.npy"
 
 
 
@@ -59,7 +58,7 @@ def load_data_shuffle(cv):
 
 
     #split train and validate set
-    val_len = len(pos_train)/10
+    val_len = len(pos_train)//10
 
     pos_val = pos_train[0:val_len]
     pos_train= pos_train[val_len:]
@@ -97,7 +96,3 @@ def load_data_shuffle(cv):
     # print X_val.shape, y_val.shape
 
     return X_train, y_train, X_test, y_test, X_val, y_val
-
-
-
-

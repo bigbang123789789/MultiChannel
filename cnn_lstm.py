@@ -2,8 +2,6 @@ from __future__ import print_function
 
 import os
 import numpy as np
-import tensorflow as tf
-
 
 from keras.layers import (
     Dense,
@@ -16,34 +14,28 @@ from keras.layers import (
     Concatenate
 )
 
-from keras.models import Model, load_model
+from keras.models import Model
 from keras.optimizers import Adam
-from keras.callbacks import (
-    ModelCheckpoint,
-    EarlyStopping
-)
+from keras.callbacks import ModelCheckpoint
 
 from keras.preprocessing import sequence
+import tensorflow as tf
 
 from load_data import load_data_shuffle
 
 
-
 np.random.seed(1337)
-tf.random.set_seed(1337)
-
 
 
 # =========================
 # PARAMETERS
 # =========================
 
-
 max_features = 21540
 
 maxlen = 400
 
-batch_size = 32
+batch_size = 10
 
 embedding_dims = 200
 
@@ -51,14 +43,12 @@ nb_filter = 150
 
 hidden_dims = 100
 
-epochs = 20
+epochs = 14
 
 
 
-os.makedirs(
-    "CNN-LSTM-weights",
-    exist_ok=True
-)
+if not os.path.exists("CNN-LSTM-weights"):
+    os.makedirs("CNN-LSTM-weights")
 
 
 
@@ -66,9 +56,7 @@ os.makedirs(
 # MAX POOL
 # =========================
 
-
 def max_1d(x):
-
     return tf.reduce_max(
         x,
         axis=1
@@ -77,22 +65,18 @@ def max_1d(x):
 
 
 # =========================
-# TRAIN
+# TRAIN 5 FOLD
 # =========================
-
 
 cvs = [1]
 
 accs = []
 
 
-
 for cv in cvs:
 
 
-    print("=========================")
-    print("Fold:", cv)
-    print("=========================")
+    print("Loading data for cv...", cv)
 
 
 
@@ -100,15 +84,8 @@ for cv in cvs:
 
 
 
-    print(
-        len(X_train),
-        "train sequences"
-    )
-
-    print(
-        len(X_test),
-        "test sequences"
-    )
+    print(len(X_train), "train sequences")
+    print(len(X_test), "test sequences")
 
 
 
@@ -131,32 +108,25 @@ for cv in cvs:
 
 
 
-    print(
-        "Train:",
-        X_train.shape
-    )
+    print("X_train shape:", X_train.shape)
+    print("X_val shape:", X_val.shape)
+    print("X_test shape:", X_test.shape)
 
-    print(
-        "Val:",
-        X_val.shape
-    )
 
-    print(
-        "Test:",
-        X_test.shape
-    )
+
+    print("Build model...")
 
 
 
     # =========================
-    # MODEL
+    # INPUT
     # =========================
 
 
     input_layer = Input(
         shape=(maxlen,),
         dtype="int32",
-        name="input"
+        name="main_input"
     )
 
 
@@ -173,12 +143,16 @@ for cv in cvs:
 
 
 
+    # filter 3
+
+
     conv3 = Conv1D(
         filters=nb_filter,
         kernel_size=3,
-        activation="relu",
-        padding="valid"
+        padding="valid",
+        activation="relu"
     )(cnn_embedding)
+
 
 
     pool3 = Lambda(
@@ -188,12 +162,18 @@ for cv in cvs:
 
 
 
+
+
+    # filter 4
+
+
     conv4 = Conv1D(
         filters=nb_filter,
         kernel_size=4,
-        activation="relu",
-        padding="valid"
+        padding="valid",
+        activation="relu"
     )(cnn_embedding)
+
 
 
     pool4 = Lambda(
@@ -203,11 +183,16 @@ for cv in cvs:
 
 
 
+
+
+    # filter 7
+
+
     conv7 = Conv1D(
         filters=nb_filter,
         kernel_size=7,
-        activation="relu",
-        padding="valid"
+        padding="valid",
+        activation="relu"
     )(cnn_embedding)
 
 
@@ -242,9 +227,7 @@ for cv in cvs:
 
 
     lstm_output = LSTM(
-        128,
-        dropout=0.2,
-        recurrent_dropout=0.2
+        128
     )(lstm_embedding)
 
 
@@ -256,8 +239,8 @@ for cv in cvs:
 
     merged = Concatenate()(
         [
-            cnn_output,
-            lstm_output
+            lstm_output,
+            cnn_output
         ]
     )
 
@@ -265,13 +248,13 @@ for cv in cvs:
 
     dense = Dense(
         hidden_dims*2,
-        activation="relu"
+        activation="sigmoid"
     )(merged)
 
 
 
     dense = Dropout(
-        0.5
+        0.2
     )(dense)
 
 
@@ -295,9 +278,7 @@ for cv in cvs:
         optimizer=Adam(
             learning_rate=0.001
         ),
-        metrics=[
-            "accuracy"
-        ]
+        metrics=["accuracy"]
     )
 
 
@@ -306,35 +287,12 @@ for cv in cvs:
 
 
 
-    # =========================
-    # SAVE BEST MODEL
-    # =========================
-
-
     checkpoint = ModelCheckpoint(
-
-        filepath=f"CNN-LSTM-weights/cv{cv}.keras",
-
+        filepath=f"CNN-LSTM-weights/cv{cv}_weights.weights.h5",
         monitor="val_accuracy",
-
         save_best_only=True,
-
         mode="max",
-
         verbose=1
-    )
-
-
-
-    early_stop = EarlyStopping(
-
-        monitor="val_accuracy",
-
-        patience=4,
-
-        restore_best_weights=False,
-
-        mode="max"
     )
 
 
@@ -344,42 +302,13 @@ for cv in cvs:
     # =========================
 
 
-    history = model.fit(
-
+    model.fit(
         X_train,
-
         y_train,
-
         batch_size=batch_size,
-
         epochs=epochs,
-
-        validation_data=(
-            X_val,
-            y_val
-        ),
-
-        callbacks=[
-            checkpoint,
-            early_stop
-        ]
-
-    )
-
-
-
-    # =========================
-    # LOAD BEST
-    # =========================
-
-
-    print(
-        "Loading best model..."
-    )
-
-
-    model = load_model(
-        f"CNN-LSTM-weights/cv{cv}.keras"
+        validation_data=(X_val,y_val),
+        callbacks=[checkpoint]
     )
 
 
@@ -389,14 +318,16 @@ for cv in cvs:
     # =========================
 
 
+    model.load_weights(
+        f"CNN-LSTM-weights/cv{cv}_weights.weights.h5",
+        skip_mismatch=True
+    )
+
+
     score, acc = model.evaluate(
-
         X_test,
-
         y_test,
-
         batch_size=batch_size
-
     )
 
 
@@ -412,9 +343,11 @@ for cv in cvs:
 
 
 
-print("=========================")
+print(
+    "========================="
+)
 
 print(
     "Average Accuracy:",
     np.mean(accs)
-)
+) 
